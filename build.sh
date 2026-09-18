@@ -124,7 +124,7 @@ git push origin HEAD --follow-tags
 
 # ── GitHub release ────────────────────────────────────────────────────────────
 echo ""
-echo "── Creating GitHub release $TAG…"
+echo "── Creating GitHub release $TAG..."
 RELEASE_NOTES="## $APP_NAME v$VERSION
 
 Native macOS menu-bar memory pressure monitor.
