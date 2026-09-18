@@ -1,0 +1,51 @@
+<!-- memSnap app icon placeholder — brain/memory motif -->
+<!-- Replace with final design before Sub-Task 12 release build -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="#0F0F18"/>
+
+  <!-- Outer glow ring -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#9D6BF5" stroke-width="6" opacity="0.4"/>
+
+  <!-- Brain shape (simplified) -->
+  <g transform="translate(256,256)">
+    <!-- Left hemisphere -->
+    <path d="M-80,-60 C-140,-60 -160,-10 -150,30
+             C-140,70 -110,90 -80,90
+             C-60,90 -50,80 -40,70
+             L-40,-60 Z"
+          fill="#44D97A" opacity="0.85"/>
+    <!-- Right hemisphere -->
+    <path d="M80,-60 C140,-60 160,-10 150,30
+             C140,70 110,90 80,90
+             C60,90 50,80 40,70
+             L40,-60 Z"
+          fill="#44D97A" opacity="0.85"/>
+    <!-- Center divide -->
+    <rect x="-6" y="-60" width="12" height="150" rx="6" fill="#0F0F18"/>
+
+    <!-- Memory "circuit" lines — left -->
+    <line x1="-110" y1="-20" x2="-60" y2="-20" stroke="#9D6BF5" stroke-width="3" stroke-linecap="round"/>
+    <line x1="-110" y1="20"  x2="-60" y2="20"  stroke="#9D6BF5" stroke-width="3" stroke-linecap="round"/>
+    <line x1="-110" y1="55"  x2="-60" y2="55"  stroke="#9D6BF5" stroke-width="3" stroke-linecap="round"/>
+    <!-- Memory "circuit" lines — right -->
+    <line x1="110"  y1="-20" x2="60"  y2="-20" stroke="#9D6BF5" stroke-width="3" stroke-linecap="round"/>
+    <line x1="110"  y1="20"  x2="60"  y2="20"  stroke="#9D6BF5" stroke-width="3" stroke-linecap="round"/>
+    <line x1="110"  y1="55"  x2="60"  y2="55"  stroke="#9D6BF5" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- RAM chips -->
+    <rect x="-130" y="-32" width="20" height="22" rx="4" fill="#F5C842"/>
+    <rect x="-130" y="8"   width="20" height="22" rx="4" fill="#F5C842"/>
+    <rect x="-130" y="44"  width="20" height="22" rx="4" fill="#F5C842"/>
+    <rect x="110"  y="-32" width="20" height="22" rx="4" fill="#F5C842"/>
+    <rect x="110"  y="8"   width="20" height="22" rx="4" fill="#F5C842"/>
+    <rect x="110"  y="44"  width="20" height="22" rx="4" fill="#F5C842"/>
+  </g>
+
+  <!-- App name label -->
+  <text x="256" y="420"
+        font-family="system-ui, -apple-system, sans-serif"
+        font-size="52" font-weight="700"
+        fill="white" opacity="0.90"
+        text-anchor="middle">memSnap</text>
+</svg>
