@@ -23,7 +23,7 @@ final class AboutWindowController: NSObject {
         }
 
         let win = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 760, height: 580),
+            contentRect: NSRect(x: 0, y: 0, width: 760, height: 610),
             styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false

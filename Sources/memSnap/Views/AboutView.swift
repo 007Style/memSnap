@@ -41,7 +41,7 @@ struct AboutView: View {
                 // ── Info row ───────────────────────────────────────────────
                 HStack(alignment: .top, spacing: 0) {
 
-                    // Left — logo + version + tagline + badge
+                    // Left — logo + version + badge
                     VStack(spacing: 8) {
                         Spacer()
                         PulsingRingView()
@@ -49,7 +49,6 @@ struct AboutView: View {
                             .font(.system(size: 22, weight: .bold, design: .rounded))
                             .foregroundColor(DS.textPrimary)
                         VersionRow()
-                        TaglineRow()
                         PressureLevelBadge()
                         Spacer()
                     }
@@ -79,9 +78,17 @@ struct AboutView: View {
                 }
                 .frame(height: 140)
                 .background(DS.bg)
+
+                Rectangle().fill(DS.border).frame(height: 1)
+
+                // ── Tagline footer — full width ────────────────────────────
+                TaglineRow()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(DS.surface.opacity(0.3))
             }
         }
-        .frame(width: 760, height: 580)
+        .frame(width: 760, height: 610)
         .preferredColorScheme(.dark)
         .onAppear {
             withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
