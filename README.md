@@ -1,144 +1,223 @@
+<div align="center">
+
 # 🧠 memSnap
 
-![macOS](https://img.shields.io/badge/macOS-13%2B-blue)
-![Swift](https://img.shields.io/badge/Swift-5.9-orange)
-![Version](https://img.shields.io/badge/version-1.0.0-green)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
+### *From the minds of Daneyand & IBM Bob*
 
-**Native macOS menu-bar memory pressure monitor — know what's eating your RAM before it becomes a problem.**
+**Native macOS menu-bar memory pressure monitor.**  
+Know what's eating your RAM — before it becomes a problem.
 
-memSnap lives in your menu bar as a glanceable segmented icon showing wired, compressed, app, and free memory in real time. When pressure rises, it tells you *which process* is to blame, *how long* until things get critical, and lets you kill it right from the popover — no need to open Activity Monitor.
+[![macOS](https://img.shields.io/badge/macOS-13%2B-blue?style=flat-square&logo=apple)](https://www.apple.com/macos/)
+[![Swift](https://img.shields.io/badge/Swift-5.9-orange?style=flat-square&logo=swift)](https://swift.org)
+[![Version](https://img.shields.io/badge/version-1.0.2-brightgreen?style=flat-square)](https://github.com/007Style/memSnap/releases)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](LICENSE)
+[![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-purple?style=flat-square)]()
 
-<!-- screenshots here -->
+</div>
 
 ---
 
-## ✨ Features
+## What is memSnap?
 
-| Feature | Description |
+memSnap lives quietly in your macOS menu bar as a real-time memory pressure monitor. It uses the macOS kernel's own pressure signals — the same ones Activity Monitor reads — combined with raw usage percentages to give you a five-level view of your system's memory health: **Normal → Elevated → Warning → Critical → Swap**.
+
+One glance at the menu bar tells you everything. One click shows you exactly which processes are to blame, how fast they're growing, and gives you the tools to deal with them — without opening Activity Monitor.
+
+---
+
+## Features
+
+### 🖥️ Menu Bar Icon — 4 Configurable Styles
+
+| Style | Description |
 |---|---|
-| 🎨 **4 Icon Styles** | Segmented bar (default), sparkline, arc gauge, or pie chart — all configurable |
-| 🟢 **5 Pressure Levels** | Normal (green) → Elevated (amber) → Warning (orange) → Critical (red) → Swap (violet) |
-| 📈 **Trend Prediction** | Slope-based "~N minutes until critical" label — warns you before pressure peaks |
-| 🔪 **Process Kill & Focus** | Kill or foreground any of the top-8 RSS-sorted processes directly from the popover |
-| 📊 **Process Growth Tracking** | Per-process ↑↓ growth indicator (MB/min over a 30-second rolling window) |
-| 🗓 **Hourly Pressure Heatmap** | 24-column heatmap showing today's peak pressure level for each hour |
-| 🧹 **Purge Cache** | One-click cache purge via `memory_pressure` — frees file-backed pages instantly |
-| 📥 **CSV Export** | Export the full 15-minute pressure history to `~/Desktop` with one click |
-| 🤖 **Auto-Kill Rules** | User-defined rules: "kill ProcessName if RSS > X MB" with 60-second cooldown |
-| 🔔 **Smart Notifications** | Critical & recovery alerts, action button "Show Top Process", configurable de-bounce duration |
-| 🌀 **Animated About Window** | RAM particle orbits, live sparkline, memory donut, animated counter, hex grid |
-| 🔁 **Pressure History Sparkline** | Scrolling sparkline with threshold lines + 1 m / 5 m / 15 m time-window picker |
+| **Segmented Bar** *(default)* | Horizontal stacked bar showing wired / compressed / app / free memory proportions in real time |
+| **Sparkline** | 40-sample pressure history line that shifts color with the current pressure level |
+| **Arc Gauge** | Semicircle fill showing total RAM usage %, color-coded by level |
+| **Pie Chart** | Proportional circular wedges — wired, compressed, app, free — at a glance |
+
+All four rendered via `NSBitmapImageRep` + `NSBezierPath` at 1 Hz, never blurry, never tinted.
 
 ---
 
-## 🖼 Screenshots
+### 🔴 5-Level Pressure Detection
 
-<!-- screenshots here -->
-
----
-
-## 📦 Install
-
-1. Download `memSnap-1.0.0.dmg` from the [latest release](https://github.com/daneyand/memSnap/releases/latest).
-2. Open the DMG and drag `memSnap.app` into your **Applications** folder.
-3. Launch memSnap — the memory icon appears in your menu bar immediately.
-4. Grant **Accessibility** access in **System Settings → Privacy & Security → Accessibility** to enable the *Focus* action (brings processes to the foreground).
-5. Approve the **Notifications** prompt on first launch to receive pressure alerts.
-
-> **Tip:** Enable "Launch at Login" inside memSnap's Settings (⚙) to have it start automatically.
-
----
-
-## 🔐 Permissions
-
-| Permission | Why |
-|---|---|
-| **Accessibility** | Required to bring another app's window to the foreground via the Focus (⬆) button in the process list. memSnap does *not* use Accessibility for any other purpose. |
-| **Notifications** | Required to send critical pressure alerts and recovery notifications. Toggled per-type in Settings. |
-
----
-
-## ⚙️ Settings
-
-All settings take effect immediately with no restart required:
-
-| Setting | Default | Description |
-|---|---|---|
-| Icon Style | Segmented Bar | Bar / Sparkline / Arc Gauge / Pie Chart |
-| Confirm Before Kill | On | Show alert before sending SIGTERM |
-| Notify on Critical | On | Alert when pressure reaches critical level |
-| Notify on Recovery | On | Alert when pressure returns to normal |
-| Notification Threshold | 10 s | Pressure must stay elevated for N seconds before alerting |
-| Launch at Login | Off | Start memSnap automatically on login |
-| History Window | 5 min | Time window shown in pressure history sparkline |
-| Elevated Threshold | 60 % | % used RAM that triggers Elevated level |
-| Warning Threshold | 80 % | % used RAM that triggers Warning level |
-| Critical Threshold | 90 % | % used RAM that triggers Critical level |
-
----
-
-## 📋 Pressure Levels
+memSnap reads both the kernel's `kIOResourceMemoryPressureKey` and raw percentage thresholds, taking the **worse of the two signals** — so you never miss a problem the system itself is worried about.
 
 | Level | Color | Trigger |
-|---|---|---|
-| **Normal** | 🟢 Mint `#44D97A` | Kernel: normal + < 60% used |
-| **Elevated** | 🟡 Amber `#F5C842` | Kernel: warning OR 60–80% used |
-| **Warning** | 🟠 Orange `#F58A1F` | Kernel: warning + 80–90% used |
-| **Critical** | 🔴 Red `#F04E4E` | Kernel: critical OR > 90% used |
-| **Swap** | 🟣 Violet `#9D6BF5` | Swap file in use (any amount) |
-
-Pressure is determined from **both** the macOS kernel `kIOResourceMemoryPressureKey` and the raw usage percentage — the worse of the two signals wins.
+|---|:---:|---|
+| **Normal** | 🟢 `#44D97A` | Kernel: normal + < 60% used |
+| **Elevated** | 🟡 `#F5C842` | Kernel: warning OR 60–80% |
+| **Warning** | 🟠 `#F58A1F` | Kernel: warning + 80–90% |
+| **Critical** | 🔴 `#F04E4E` | Kernel: critical OR > 90% |
+| **Swap** | 🟣 `#9D6BF5` | Swap file in active use |
 
 ---
 
-## 🏗 Build From Source
+### 📊 Popover Dashboard
 
-Requires **macOS 13+**, **Swift 5.9+**, and **Xcode Command Line Tools**.
+Click the menu bar icon to open the full dashboard:
 
+- **Memory breakdown bar** — proportional wired / compressed / app / free bar with GB labels
+- **Trend prediction** — `"~4 min until critical"` computed from linear regression slope over the last 60 samples. Never guess when things are about to go wrong.
+- **Pressure history sparkline** — Canvas-drawn filled area with faint threshold lines at 60% / 80% / 90%; switchable 1m / 5m / 15m time windows
+- **Swap indicator** — Appears only when swap is active; violet bar showing used vs. total swap
+- **24-hour heatmap** — 24 color-coded squares showing peak pressure per hour today. Current hour pulses. Spots patterns like "my machine maxes out every afternoon."
+
+---
+
+### ⚡ Process Control
+
+Top 8 processes by RSS, updated every 2 seconds:
+
+| Column | Description |
+|---|---|
+| **Icon** | App icon via NSWorkspace (cached) |
+| **Name** | Process name, truncated to fit |
+| **Memory** | RSS in human-readable format (MB / GB) |
+| **Growth** | ↑ red / ↓ green / — gray with MB/min rate |
+| **CPU %** | Current CPU usage |
+| **⬆ Focus** | `NSRunningApplication.activate` — brings app to foreground |
+| **✕ Kill** | SIGTERM → 3s poll → offer SIGKILL (macOS Force Quit flow) |
+
+System processes (PID < 100, `kernel_task`) are protected — buttons disabled.
+
+---
+
+### 🤖 Auto-Kill Rules
+
+Set it and forget it. Define rules like `"if Safari exceeds 4000 MB, kill it"`:
+
+- Rules stored as Codable JSON in UserDefaults — persist across restarts
+- 60-second per-process cooldown prevents re-kill loops
+- Kill log shows last 20 events with relative timestamps ("2 min ago")
+- Toggle individual rules on/off without deleting them
+
+---
+
+### 🔔 Smart Notifications
+
+- **Critical alert** fires only after pressure *stays* critical for N seconds (configurable, default 10s) — no false alarms from brief spikes
+- **"Show Top Process"** action button on the notification — one tap opens the memSnap popover to the offending process
+- **Recovery alert** fires when pressure returns to normal — close the loop
+- Both alerts individually toggleable in Settings
+
+---
+
+### 🧰 Actions
+
+| Action | What it does |
+|---|---|
+| **🧹 Free Cache** | Calls `memory_pressure -S -l warn` to flush disk caches — reclaims space no other tool surfaces easily |
+| **📥 Export CSV** | Dumps full pressure history to `~/Desktop/memSnap-export-YYYY-MM-DD-HH-mm.csv` and reveals it in Finder |
+| **↗ Activity Monitor** | Opens Activity Monitor's Memory tab for deeper inspection |
+
+---
+
+### ⚙️ Settings
+
+All settings take effect immediately with no restart:
+
+| Setting | Default |
+|---|---|
+| Icon style | Segmented bar |
+| Confirm before killing | On |
+| Critical alert | On |
+| Recovery alert | On |
+| Alert after N seconds at critical | 10s |
+| Elevated threshold | 60% |
+| Warning threshold | 80% |
+| Critical threshold | 90% |
+| Launch at Login | Off |
+
+---
+
+### 🎨 About Window
+
+A fully animated 760×610 dark window that would look at home in a sci-fi movie:
+
+- **RAM particle network** — 10 nodes (RAM, HEAP, WIRED, CACHE, SWAP, APP, FREE, KERN, DISK, VRAM) orbiting a center point at varying speeds; connection lines fade by distance
+- **Animated hex grid** — slow rotating background, matching the beeMon / netBee aesthetic
+- **Pulsing glow ring** — around the 🧠 icon, scales 1.0→1.5 with fading opacity
+- **Live pressure sparkline** — real data, updates every 0.5s
+- **Live memory donut** — 4 arc segments, spring-animated when proportions change
+- **Animated RAM counter** — counts up from 0 to your actual installed GB on open
+- **Pressure level badge** — pulses on level change
+- **Feature pills** — 8 key features in a 2-column grid
+- **System info capsules** — CPU cores, RAM, macOS version
+
+---
+
+## Install
+
+**Option A — DMG (recommended)**
+1. Download `memSnap-1.0.2.dmg` from the [latest release](https://github.com/007Style/memSnap/releases/latest)
+2. Open the DMG — drag **memSnap.app** into the **Applications** folder
+3. Launch memSnap from Applications or Spotlight
+
+**Option B — Build from source**
 ```bash
-git clone https://github.com/daneyand/memSnap.git
+git clone https://github.com/007Style/memSnap.git
 cd memSnap
-./build.sh --local   # builds memSnap.app + DMG in build/
-```
-
-For a full release (commits, tags, and publishes to GitHub):
-
-```bash
-./build.sh
+./build.sh --local          # builds DMG in build/
+# or just:
+swift build -c release
 ```
 
 ---
 
-## 🗂 Architecture
+## Permissions
+
+| Permission | Why | Where to grant |
+|---|---|---|
+| **Notifications** | Critical / recovery pressure alerts | Prompted on first launch |
+| **Accessibility** | Process Focus (⬆ bring to foreground) | System Settings → Privacy & Security → Accessibility |
+
+memSnap does **not** require Full Disk Access, Location, Camera, Microphone, or any network entitlements.
+
+---
+
+## Architecture
 
 ```
 AppDelegate
-  └── TrayController
-        ├── MemoryMonitor (singleton, 1 Hz)      ← kernel pressure + RSS breakdown + swap + trend
-        ├── ProcessMonitor (singleton, 2 Hz)     ← top-8 by RSS + growth tracking + icons
-        ├── NotificationManager                  ← critical/recovery + duration threshold + action button
-        ├── AutoKillManager                      ← watches rules, fires SIGTERM on threshold breach
-        └── NSPopover
-              ├── MemoryHeaderView               ← segmented bar + GB numbers + trend prediction label
-              ├── PressureHistoryView            ← sparkline + threshold lines + time-window picker
-              ├── ProcessListView                ← icon + name + MB + growth arrow + kill/focus
-              ├── SwapView                       ← shown only if swap > 0
-              ├── PressureHeatmapView            ← 24-col hourly heatmap (today)
-              ├── ActionFooterView               ← Purge button + Export CSV + Open Activity Monitor
-              └── SettingsView                   ← all prefs (toggled via gear icon)
+  └── TrayController (NSStatusItem + 4 icon renderers + left/right click)
+        ├── MemoryMonitor       @MainActor singleton, 1 Hz, IOKit + host_statistics64
+        ├── ProcessMonitor      @MainActor singleton, 2 Hz, ps + NSRunningApplication
+        ├── NotificationManager @MainActor singleton, UNUserNotificationCenter
+        ├── AutoKillManager     @MainActor singleton, Combine + UserDefaults
+        └── NSPopover (360px)
+              ├── MemoryHeaderView    segmented bar + trend label
+              ├── PressureHistoryView sparkline + threshold lines + time picker
+              ├── SwapView            conditional violet bar
+              ├── ProcessListView     top-8 + growth + kill/focus
+              ├── PressureHeatmapView 24-hour hourly peak squares
+              └── ActionFooterView    purge + export + Activity Monitor
 
-AboutWindowController
-  └── AboutView                                  ← animated: memory particles, live pressure sparkline,
-                                                    orbiting RAM cells, hex grid, version, tagline
+SettingsWindowController   standalone 500×700 NSWindow
+AboutWindowController      standalone 760×610 NSWindow (fully animated)
 ```
 
----
-
-## 📄 License
-
-MIT — see [LICENSE](LICENSE).
+**Stack:** Swift 5.9 · SPM · SwiftUI + AppKit · Combine · IOKit · UserNotifications · macOS 13+ · zero external dependencies.
 
 ---
 
-> *From the minds of Daneyand & IBM Bob*
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the full history.
+
+**v1.0.2** — Settings opens correctly from right-click context menu · Original brain+circuit app icon · this README
+
+**v1.0.1** — Tagline fixed in About window · Settings as standalone window · Installer DMG with Applications symlink
+
+**v1.0.0** — Initial release
+
+---
+
+<div align="center">
+
+### *From the minds of Daneyand & IBM Bob* 🧠🤖
+
+*Pure Swift · SwiftUI · Zero dependencies · macOS 13+*
+
+</div>

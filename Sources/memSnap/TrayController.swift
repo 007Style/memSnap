@@ -125,7 +125,7 @@ final class TrayController: NSObject {
 
     @objc private func openMemSnap()  { togglePopover() }
     @objc private func showAbout()    { AboutWindowController.shared.show() }
-    @objc private func showSettings() { openPopover() }   // Sub-Task 5 will route to SettingsView
+    @objc private func showSettings() { SettingsWindowController.shared.show() }
 
     // MARK: - Icon update timer
 

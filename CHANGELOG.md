@@ -2,6 +2,17 @@
 
 ---
 
+## v1.0.2 — 2025-09-18
+
+### Fixed
+- **Right-click Settings menu item broken.** The "Settings…" item in the right-click context menu was calling `openPopover()` instead of `SettingsWindowController.shared.show()` — a stale TODO comment from Sub-Task 4 that never got updated. Settings now opens correctly from both the popover gear icon and the context menu.
+
+### Added
+- **Original app icon.** Designed a custom 1024×1024 SVG icon: dark circuit-board background, dual-hemisphere brain with gradient (blue → violet → green), RAM chip slots on all four sides, pressure-level colored dots on the brain surface (green/amber/orange/red/violet), and a pressure gauge arc at the bottom. Converted to `.icns` (all sizes 16–1024 + @2x) and bundled into the app. Icon is now visible in the DMG, Dock, Spotlight, and Launchpad.
+- **Verbose README.** Rewrote `README.md` with tagline front-and-center at the top, full feature documentation, architecture diagram, install options, permissions table, and changelog summary. Tagline appears at the top and bottom of the document.
+
+---
+
 ## v1.0.1 — 2025-09-18
 
 ### Fixed

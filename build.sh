@@ -11,7 +11,7 @@ set -euo pipefail
 # ── Config ────────────────────────────────────────────────────────────────────
 APP_NAME="memSnap"
 BUNDLE_ID="com.daneyand.memSnap"
-VERSION="1.0.1"
+VERSION="1.0.2"
 BUILD_NUMBER="1"
 MIN_MACOS="13.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -63,17 +63,39 @@ cat > "$APP_BUNDLE/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-# Generate .icns from SVG if swift script present; otherwise use placeholder
+# Copy pre-built .icns if present; regenerate from SVG via sips+iconutil if not
 ICON_SVG="$ROOT/Sources/$APP_NAME/Assets/icon.svg"
+ICNS_SRC="$ROOT/Sources/$APP_NAME/Assets/$APP_NAME.icns"
 ICNS_PATH="$APP_BUNDLE/Contents/Resources/$APP_NAME.icns"
-if [[ -f "$ROOT/scripts/svg2icns.swift" && -f "$ICON_SVG" ]]; then
-    echo "── Generating .icns from SVG…"
-    swift "$ROOT/scripts/svg2icns.swift" "$ICON_SVG" "$ICNS_PATH"
-    cat >> "$APP_BUNDLE/Contents/Info.plist.tmp" <<'EOF' 2>/dev/null || true
-EOF
-    # Inject CFBundleIconFile into plist (append before </dict>)
-    sed -i '' 's|</dict>|    <key>CFBundleIconFile</key><string>'"$APP_NAME"'</string>\n</dict>|' \
-        "$APP_BUNDLE/Contents/Info.plist"
+
+if [[ -f "$ICNS_SRC" ]]; then
+    echo "── Copying app icon (.icns)…"
+    cp "$ICNS_SRC" "$ICNS_PATH"
+elif [[ -f "$ICON_SVG" ]]; then
+    echo "── Generating .icns from SVG via sips + iconutil…"
+    ICONSET_DIR="$(mktemp -d)/memSnap.iconset"
+    TMPDIR_QM="$(mktemp -d)"
+    mkdir -p "$ICONSET_DIR"
+    qlmanage -t -s 1024 -o "$TMPDIR_QM" "$ICON_SVG" 2>/dev/null
+    SRC_PNG="$(ls "$TMPDIR_QM"/*.png 2>/dev/null | head -1)"
+    if [[ -n "$SRC_PNG" ]]; then
+        for SZ in 16 32 64 128 256 512 1024; do
+            sips -z $SZ $SZ "$SRC_PNG" --out "$ICONSET_DIR/icon_${SZ}x${SZ}.png" 2>/dev/null
+        done
+        for SZ in 16 32 64 128 256 512; do
+            DOUBLE=$((SZ * 2))
+            cp "$ICONSET_DIR/icon_${DOUBLE}x${DOUBLE}.png" "$ICONSET_DIR/icon_${SZ}x${SZ}@2x.png" 2>/dev/null || true
+        done
+        iconutil -c icns "$ICONSET_DIR" -o "$ICNS_PATH" 2>/dev/null
+    fi
+    rm -rf "$TMPDIR_QM" "$(dirname "$ICONSET_DIR")"
+fi
+
+if [[ -f "$ICNS_PATH" ]]; then
+    # Inject CFBundleIconFile into Info.plist
+    sed -i '' 's|</dict>|    <key>CFBundleIconFile</key><string>'"$APP_NAME"'</string>\
+</dict>|' "$APP_BUNDLE/Contents/Info.plist"
+    echo "   Icon: $APP_NAME.icns installed"
 fi
 
 # ── Code-sign ────────────────────────────────────────────────────────────────
