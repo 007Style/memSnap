@@ -85,19 +85,103 @@ echo "   Identity: ${IDENTITY:--  (ad-hoc)}"
 codesign --force --deep --sign "$IDENTITY" "$APP_BUNDLE" 2>/dev/null || \
     codesign --force --deep --sign - "$APP_BUNDLE"
 
-# ── DMG ──────────────────────────────────────────────────────────────────────
-echo "── Creating DMG…"
+# ── DMG (installer-style: /Applications symlink + AppleScript window) ────────
+echo "── Creating installer DMG…"
 mkdir -p "$BUILD_DIR"
 rm -f "$DMG_PATH"
+
+DMG_STAGING="$BUILD_DIR/dmg-staging"
+TMP_DMG="$BUILD_DIR/tmp-rw.dmg"
+VOLUME_NAME="$APP_NAME $VERSION"
+
+rm -rf "$DMG_STAGING"
+mkdir -p "$DMG_STAGING"
+
+# Copy app bundle and add /Applications drag-target symlink
+cp -R "$APP_BUNDLE" "$DMG_STAGING/$APP_NAME.app"
+ln -s /Applications "$DMG_STAGING/Applications"
+
+# Add README.txt with install instructions
+cat > "$DMG_STAGING/README.txt" << 'README'
+memSnap — Memory Pressure Monitor for macOS
+============================================
+Requires macOS 13 (Ventura) or later.
+
+INSTALL:
+  Drag memSnap.app into the Applications folder.
+
+FIRST RUN:
+  macOS may show a security prompt since the app is not notarised.
+  Right-click the app and choose "Open", then confirm.
+
+  To enable process Focus actions, grant Accessibility access in:
+  System Settings → Privacy & Security → Accessibility → memSnap
+
+NOTIFICATIONS:
+  memSnap will request notification permission on first launch.
+
+UNINSTALL:
+  Drag memSnap.app from Applications to the Trash.
+  Preferences: ~/Library/Preferences/com.daneyand.memSnap.plist
+
+---
+From the minds of Daneyand & IBM Bob
+README
+
+# Step 1: Create writable intermediate DMG from staging folder
+rm -f "$TMP_DMG"
 hdiutil create \
-    -volname "$APP_NAME $VERSION" \
-    -srcfolder "$APP_BUNDLE" \
-    -ov -format UDZO \
-    "$DMG_PATH"
+    -volname  "$VOLUME_NAME" \
+    -srcfolder "$DMG_STAGING" \
+    -ov \
+    -format UDRW \
+    -fs HFS+ \
+    "$TMP_DMG" > /dev/null
+
+# Step 2: Mount the writable DMG
+DEVICE="$(hdiutil attach -readwrite -noverify -noautoopen "$TMP_DMG" \
+    | awk '/Apple_HFS/ { print $1 }')"
+sleep 1
+
+# Step 3: Style the Finder window with AppleScript
+osascript << APPLESCRIPT
+tell application "Finder"
+  tell disk "$VOLUME_NAME"
+    open
+    set current view of container window to icon view
+    set toolbar visible of container window to false
+    set statusbar visible of container window to false
+    set bounds of container window to {200, 120, 720, 420}
+    set theViewOptions to the icon view options of container window
+    set arrangement of theViewOptions to not arranged
+    set icon size of theViewOptions to 96
+    set position of item "$APP_NAME.app"  of container window to {170, 145}
+    set position of item "Applications"   of container window to {390, 145}
+    close
+    open
+    update without registering applications
+    delay 2
+  end tell
+end tell
+APPLESCRIPT
+
+# Step 4: Unmount and convert to compressed read-only DMG
+hdiutil detach "$DEVICE" > /dev/null
+sleep 1
+
+hdiutil convert "$TMP_DMG" \
+    -format UDZO \
+    -imagekey zlib-level=9 \
+    -o "$DMG_PATH" > /dev/null
+
+# Clean up staging
+rm -f "$TMP_DMG"
+rm -rf "$DMG_STAGING"
 
 echo ""
 echo "✅  $DMG_NAME created in build/"
 echo "    Size: $(du -sh "$DMG_PATH" | cut -f1)"
+echo "    Install: open DMG and drag $APP_NAME.app → Applications"
 
 if $LOCAL_ONLY; then
     echo ""
