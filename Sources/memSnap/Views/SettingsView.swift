@@ -1,47 +1,44 @@
 import SwiftUI
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SettingsView.swift — Settings panel with Display, Alerts, Thresholds, Rules, Launch
+// SettingsView.swift — Settings content (embedded in SettingsWindowView)
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// SettingsWindowView — root view hosted in the standalone settings NSWindow
+struct SettingsWindowView: View {
+    var body: some View {
+        ZStack {
+            DS.bg.ignoresSafeArea()
+            VStack(spacing: 0) {
+                // Window title bar area
+                HStack {
+                    Text("memSnap Settings")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(DS.textPrimary)
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 12)
+
+                Divider().background(DS.border)
+
+                SettingsView()
+            }
+        }
+        .frame(minWidth: 460, idealWidth: 500, maxWidth: 700)
+        .preferredColorScheme(.dark)
+    }
+}
+
+// SettingsView — the scrollable settings content, now free of popover width constraints
 struct SettingsView: View {
-    @ObservedObject var settings = MemSnapSettings.shared
+    @ObservedObject var settings  = MemSnapSettings.shared
     @ObservedObject var loginItem = LoginItemManager.shared
-    @Binding var showSettings: Bool
 
     var body: some View {
-        VStack(spacing: DS.spacing) {
-            // ── Header with Back Button ───────────────────────────────────────
-            HStack {
-                Button {
-                    showSettings = false
-                } label: {
-                    HStack(spacing: 4) {
-                        Text("← Back")
-                            .font(DS.fontLabel)
-                            .foregroundStyle(DS.pressureElevated)
-                    }
-                }
-                .buttonStyle(.plain)
-
-                Spacer()
-
-                Text("Settings")
-                    .font(DS.fontTitle)
-                    .foregroundStyle(DS.textPrimary)
-
-                Spacer()
-
-                // Spacer to balance the Back button visual weight
-                Color.clear
-                    .frame(width: 48, height: 1)
-            }
-            .padding(.horizontal, 4)
-            .padding(.bottom, 2)
-
-            // ── Scrollable Form content ───────────────────────────────────────
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: DS.spacing) {
+        ScrollView(.vertical, showsIndicators: true) {
+            VStack(spacing: DS.spacing) {
 
                     // ── Display Section ──────────────────────────────────────────────
                     VStack(alignment: .leading, spacing: 10) {
@@ -205,9 +202,9 @@ struct SettingsView: View {
                         RoundedRectangle(cornerRadius: DS.cornerRadius)
                             .stroke(DS.border, lineWidth: 1)
                     )
-                }
             }
         }
+        .padding(20)
     }
 }
 
