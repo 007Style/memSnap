@@ -11,7 +11,7 @@ set -euo pipefail
 # ── Config ────────────────────────────────────────────────────────────────────
 APP_NAME="memSnap"
 BUNDLE_ID="com.daneyand.memSnap"
-VERSION="1.0.0"
+VERSION="1.0.1"
 BUILD_NUMBER="1"
 MIN_MACOS="13.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
